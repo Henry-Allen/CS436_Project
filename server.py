@@ -31,7 +31,6 @@ from datetime import datetime
 SERVER_PORT = 12000
 BUFFER_SIZE = 65535          # large enough for one small headshot file
 
-# ---------------------------------------------------------------- data ---
 
 CUSTOMERS = {
     "A": {"username": "A", "password": "A", "name": "A",
@@ -64,8 +63,6 @@ STATUS_TEXT = {
     4: "4-dropped off",
 }
 
-
-# ------------------------------------------------------------- helpers ---
 
 def now_str():
     """Current time as a readable string for the ride records."""
@@ -122,8 +119,6 @@ def find_ride(ride_id):
             return ride
     return None
 
-
-# -------------------------------------------------------------- logging ---
 # The server must prompt a message on the screen every time it receives
 # or sends a message.
 
@@ -134,8 +129,6 @@ def log_received(what, addr):
 def log_sent(what, addr):
     print(f"[SERVER] Sent {what} to {addr}")
 
-
-# ------------------------------------------------------------ handlers ---
 
 def handle_login(msg, addr):
     """Check username/password against the customer or driver list."""
@@ -242,8 +235,6 @@ def handle_request_ride(msg, addr):
     NEXT_RIDE_ID += 1
     RIDES.append(ride)
 
-    # The pickup zone becomes the customer's current zone, and the
-    # customer is not riding yet (riding status 0).
     customer["zone"] = pickup
     customer["riding"] = 0
 
@@ -281,7 +272,6 @@ def handle_accept_ride(msg, addr, server_socket):
           f"{ride['customer']}: driver {username} accepted it "
           f"(driver is in zone {zone})")
 
-    # Tell the waiting customer about their driver.
     customer = CUSTOMERS.get(ride["customer"])
     if customer is not None and customer["addr"] is not None:
         push = {"type": "driver_assigned", "ride": ride_view(ride),
@@ -355,8 +345,6 @@ def handle_reached_dropoff(msg, addr):
             "message": "Drop off confirmed. The ride is done.",
             "ride": ride_view(ride), "stage": "dropoff"}
 
-
-# ---------------------------------------------------------------- main ---
 
 def main():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

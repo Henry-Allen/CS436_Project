@@ -21,13 +21,11 @@ import socket
 SERVER_NAME = "localhost"
 SERVER_PORT = 12000
 BUFFER_SIZE = 65535
-MAX_HEADSHOT_BYTES = 60000   # a headshot must fit in one UDP message
+MAX_UDP_DATAGRAM_BYTES = 9216
+MAX_HEADSHOT_BYTES = MAX_UDP_DATAGRAM_BYTES - len(b"HEADSHOT||") - 1
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client_socket.settimeout(30)     # reply from the server should be quick
-
-
-# ------------------------------------------------------------- helpers ---
 
 def send(msg):
     """Send one JSON message to the server."""
@@ -123,8 +121,6 @@ def print_driver(driver):
     print_table(headers, rows)
 
 
-# ---------------------------------------------------------------- main ---
-
 def main():
     print("=" * 60)
     print("Simple Uber App -- Customer")
@@ -160,13 +156,13 @@ def main():
         else:
             with open(filename, "rb") as f:
                 file_bytes = f.read()
-            if len(file_bytes) > MAX_HEADSHOT_BYTES:
+            message = (b"HEADSHOT|" + username.encode() + b"|"
+                       + file_bytes)
+            if (len(file_bytes) > MAX_HEADSHOT_BYTES
+                    or len(message) > MAX_UDP_DATAGRAM_BYTES):
                 print("That file is too large to send in one message. "
                       "Please use a very small file.")
             else:
-                # One message: HEADSHOT|<username>|<file bytes>
-                message = (b"HEADSHOT|" + username.encode() + b"|"
-                           + file_bytes)
                 client_socket.sendto(message, (SERVER_NAME, SERVER_PORT))
                 reply = receive()
                 if reply is not None:
